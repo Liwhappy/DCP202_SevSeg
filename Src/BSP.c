@@ -2,113 +2,103 @@
 #include "BSP.h"
 
 // 时钟节拍
-__IO uint32_t _sysTicks_inc = 0;	
+__IO uint32_t _sysTicks_inc = 0;
 
 /****************************************************************************
-* 名    称：void sysTick_increase(void)
-* 功    能：时钟节拍增量
-* 入口参数：无
-* 出口参数：无
-* 说    明：此方法由 systick定时器中断周期调用
-* 调用方法：无 
-****************************************************************************/  
+ * 名    称：void sysTick_increase(void)
+ * 功    能：时钟节拍增量
+ * 入口参数：无
+ * 出口参数：无
+ * 说    明：此方法由 systick定时器中断周期调用
+ * 调用方法：无
+ ****************************************************************************/
 void sysTick_increase(void)
 {
-	_sysTicks_inc ++;
+	_sysTicks_inc++;
 }
-
 
 /*获取系统时钟节拍数量*/
 uint32_t getSysTicks(void)
 {
-	return _sysTicks_inc;	
+	return _sysTicks_inc;
 }
 
 /****************************************************************************
-* 名    称：void delay_ticks
-* 功    能：基于systick定时器的延时函数
-* 入口参数：dtime 延时时间，单位mS
-* 出口参数：无
-* 说    明：此方法由 systick定时器中断周期调用
-* 调用方法：无 
-****************************************************************************/  
+ * 名    称：void delay_ticks
+ * 功    能：基于systick定时器的延时函数
+ * 入口参数：dtime 延时时间，单位mS
+ * 出口参数：无
+ * 说    明：此方法由 systick定时器中断周期调用
+ * 调用方法：无
+ ****************************************************************************/
 
 void delay_ticks(uint16_t dtime)
 {
 	uint32_t timestamp;
 	timestamp = getSysTicks();
-	while(getSysTicks() - timestamp < dtime);
+	while (getSysTicks() - timestamp < dtime)
+		;
 }
-
 
 extern void SMG_Refresh(void);
 
-
 /**
-  * @brief  This function handles SysTick Handler.
-  * @param  None
-  * @retval : None
-  */
+ * @brief  This function handles SysTick Handler.
+ * @param  None
+ * @retval : None
+ */
 void SysTick_Handler(void)
 {
-  sysTick_increase();
-
+	sysTick_increase();
 }
 
-
-
-
 /************************************************/
-/*								GPIO     
-*/
+/*								GPIO
+ */
 
 /**
  * @brief : 开发板 板载资源配置，含GPIO systick初始化
- * @description: 
+ * @description:
  * @return {*}
  */
 void BSP_Configuration(void)
 {
 	GPIO_InitTypeDef GPIOInit;
-	
+
 	RCC->APB2ENR |= RCC_APB2ENR_IOPCEN;
-	
+
 	// *******BEEP 蜂鸣器管脚初始化**********/
 	GPIOInit.GPIO_Mode = GPIO_Mode_Out_PP;
 	GPIOInit.GPIO_Pin = GPIO_Pin_13;
 	GPIOInit.GPIO_Speed = GPIO_Speed_50MHz;
-	GPIO_Init(BEEP_Port,&GPIOInit);
+	GPIO_Init(BEEP_Port, &GPIOInit);
 
-	
 	// *******LED 管脚初始化**********/
-	GPIOInit.GPIO_Mode	 	= GPIO_Mode_Out_PP;
-	GPIOInit.GPIO_Pin 		= GPIO_Pin_7|GPIO_Pin_9;
-	GPIOInit.GPIO_Speed 	= GPIO_Speed_50MHz;
-	GPIO_Init(GPIOC,&GPIOInit);
-	GPIO_WriteBit(GPIOC,GPIOInit.GPIO_Pin,(BitAction)1);
-	
-	// *******Button 按键管脚初始化**********/
-	GPIOInit.GPIO_Mode		= GPIO_Mode_IPU;
-	GPIOInit.GPIO_Pin		= GPIO_Pin_6 | GPIO_Pin_8;
-	GPIO_Init(BTN_Port,&GPIOInit);
-	
-	// 中断优先级分组配置
-	  NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);	//需要用该方法修改中断优先级分组
-//	NVIC_SetPriorityGrouping(NVIC_PriorityGroup_2);
+	GPIOInit.GPIO_Mode = GPIO_Mode_Out_PP;
+	GPIOInit.GPIO_Pin = GPIO_Pin_7 | GPIO_Pin_9;
+	GPIOInit.GPIO_Speed = GPIO_Speed_50MHz;
+	GPIO_Init(GPIOC, &GPIOInit);
+	GPIO_WriteBit(GPIOC, GPIOInit.GPIO_Pin, (BitAction)1);
 
-// ***********Systick 初始化******************************/
+	// *******Button 按键管脚初始化**********/
+	GPIOInit.GPIO_Mode = GPIO_Mode_IPU;
+	GPIOInit.GPIO_Pin = GPIO_Pin_6 | GPIO_Pin_8;
+	GPIO_Init(BTN_Port, &GPIOInit);
+
+	// 中断优先级分组配置
+	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2); //需要用该方法修改中断优先级分组
+													//	NVIC_SetPriorityGrouping(NVIC_PriorityGroup_2);
+
+	// ***********Systick 初始化******************************/
 	SysTick_Config(SystemCoreClock / 1000);
 	// SysTick_Config(72000);
-	NVIC_SetPriority(SysTick_IRQn, 0);			// systick中断优先级设置为0，0 最高。
-// *************systick 初始化结束**************************/
-
-	
+	NVIC_SetPriority(SysTick_IRQn, 0); // systick中断优先级设置为0，0 最高。
+	// *************systick 初始化结束**************************/
 }
-
 
 /**
  * @brief : 蜂鸣器发声
- * @description: 
+ * @description:
  * @param onTime: (uint16_t)发声时间，单位ms
  * @return {null}
  */
@@ -116,50 +106,66 @@ void Beep_On(uint16_t onTime)
 {
 	uint32_t BeepOnstamp;
 	BeepOnstamp = getSysTicks();
-	GPIO_WriteBit(GPIOC,GPIO_Pin_13,1);
-	while(getSysTicks() - BeepOnstamp < onTime );
-	GPIO_WriteBit(GPIOC,GPIO_Pin_13,0);
+	GPIO_WriteBit(GPIOC, GPIO_Pin_13, 1);
+	while (getSysTicks() - BeepOnstamp < onTime)
+		;
+	GPIO_WriteBit(GPIOC, GPIO_Pin_13, 0);
 }
 
+uint8_t _bspKey_EventDn = 0;
+uint8_t Bsp_BTN_getLastEvent(void)
+{
+	return _bspKey_EventDn;
+}
 
-uint8_t bspKey_EventDn , perBspKey = 0xff;
+uint8_t bspKey_EventDn, perBspKey = 0xff;
 uint8_t Bsp_BTNScan(void)
 {
 	uint8_t key = 0;
-	uint8_t i=0;
+	uint8_t i = 0;
 
 	// 将2个按键 组合到一个字节数据的最低2位
-	if(GPIO_ReadInputDataBit(BTN_Port,BTN1_Pin) == 1)
+	//低电平表示按下
+	if (GPIO_ReadInputDataBit(BTN_Port, BTN1_Pin) == 1)
 	{
 		key |= 0x01;
 	}
-	key<<=1;
-	if(GPIO_ReadInputDataBit(BTN_Port,BTN2_Pin) == 1)
+	key <<= 1;
+	if (GPIO_ReadInputDataBit(BTN_Port, BTN2_Pin) == 1)
 	{
 		key |= 0x01;
 	}
-	key = (~key) & 0x03;  // 取反以1表示按键有效
+	key = (~key) & 0x03; // 取反以1表示按键有效
 
-	if(key != 0x00)
-	{	//有按键按下
-		bspKey_EventDn = (key ^ perBspKey);
-		
-		if(key != perBspKey)
+	if (key != 0x00) 
+	{ //有按键按下
+		if (key != perBspKey)
 		{
-
+			switch(key)
+			{
+				case 0x01: //按键1
+				bspKey_EventDn = 1;
+				break;
+				case 0x10: //按键2
+				bspKey_EventDn = 2;
+				break;
+				default:
+				break;
+			}
+			_bspKey_EventDn = bspKey_EventDn;
+			perBspKey = key;
+		}else
+		{
+			perBspKey = 0;
 		}
-
 	}
-
-	
-
 }
 
 
 
 /**
  * @brief : 数据范围映射方法
- * @description: 
+ * @description:
  * @param {long} x
  * @param {long} in_min
  * @param {long} in_max
@@ -169,8 +175,25 @@ uint8_t Bsp_BTNScan(void)
  */
 long map(long x, long in_min, long in_max, long out_min, long out_max)
 {
-  return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
+	return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
 }
 
+/**
+ * @brief : 返回判断型延时
+ * @param  Time_val : 输入参数判断到是否到某个时间
+ * @return 到达时间就返回1，没有到达返回0
+ */
+uint8_t Time_over(uint32_t Time_val)
+{
+	static uint32_t NowTime_val = 0;
 
-
+	if (getSysTicks() - NowTime_val >= Time_val)
+	{
+		NowTime_val = getSysTicks();
+		return 1;
+	}
+	else
+	{
+		return 0;
+	}
+}

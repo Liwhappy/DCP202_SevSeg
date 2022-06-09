@@ -72,5 +72,16 @@ void Beep_On(uint16_t onTime);
  */
 long map(long x, long in_min, long in_max, long out_min, long out_max);
 
+/**
+ * @brief : 返回判断型延时
+ * @param  Time_val : 输入参数判断到是否到某个时间
+ * @return 到达时间就返回1，没有到达返回0
+ */
+uint8_t Time_over(uint32_t Time_val);
+
+
+uint8_t Bsp_BTNScan(void);
+uint8_t Bsp_BTN_getLastEvent(void);
+
 #endif
 
